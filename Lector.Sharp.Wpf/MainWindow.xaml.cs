@@ -152,7 +152,7 @@ namespace Lector.Sharp.Wpf
         private void SupportHtml5()
         {
             RegistryKey reg = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION", true);
-            reg.SetValue("Lector.Sharp.Wpf.exe", 9999, RegistryValueKind.DWord);
+            reg.SetValue("Lector.Sharp.Wpf.exe", 11001, RegistryValueKind.DWord);
         }
 
         /// <summary>
@@ -441,8 +441,8 @@ namespace Lector.Sharp.Wpf
         /// </summary>
         /// <param name="browser"></param>
         private void CloseWindowBrowser(BrowserWindow browser)
-        {            
-            SystemCommands.CloseWindow(browser);
+        {
+            browser.Hide();
         }
 
         /// <summary>

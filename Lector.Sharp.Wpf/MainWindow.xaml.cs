@@ -1,6 +1,8 @@
 ﻿using Lector.Sharp.Wpf.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +18,8 @@ using System.Windows.Shapes;
 using System.Deployment.Application;
 using Microsoft.Win32;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
 using MySql.Data.MySqlClient;
 
 namespace Lector.Sharp.Wpf
@@ -30,7 +34,7 @@ namespace Lector.Sharp.Wpf
         /// </summary>
         private LowLevelKeyboardListener _listener;
         private LowLevelWindowsListener _window;
-
+        
         /// <summary>
         /// Gestiona todos los servicios de SisFarma, como acceso a la
         /// base de datos, lectura de archivos de configuración.
@@ -88,7 +92,7 @@ namespace Lector.Sharp.Wpf
                 }
                 return _customBrowser;
             }
-        }
+        }        
 
         public MainWindow()
         {
@@ -111,7 +115,8 @@ namespace Lector.Sharp.Wpf
 
                 // Activamos el listener de teclado
                 _listener.HookKeyboard();
-
+                this.RegisterHotKeys();
+                                                
                 _iconNotification = new System.Windows.Forms.NotifyIcon();
                 _iconNotification.BalloonTipText = "La Aplicación SisFarma se encuentra ejecutando";
                 _iconNotification.BalloonTipTitle = "SisFarma Notificación";
@@ -174,6 +179,7 @@ namespace Lector.Sharp.Wpf
         {
             // Desactivamos el listener del teclado
             _listener.UnHookKeyboard();
+            this.UnregisteredHotKeys();
         }
 
         /// <summary>
@@ -186,23 +192,8 @@ namespace Lector.Sharp.Wpf
             try
             {
                 if (e.KeyPressed != Key.Enter)
-                {
-                    // Si presionamos SHIFT + F1
-                    if (_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) && e.KeyPressed == Key.F1)
-                    {   // Si La ventana de información detallada está abierta la cerramos
-                        if (InfoBrowser.IsVisible)
-                            CloseWindowBrowser(InfoBrowser);
-                        // Abrimos una ventana con la web personalizada.    
-                        OpenWindowBrowser(CustomBrowser, _service.UrlNavegarCustom, InfoBrowser);
-                    }
-                    // Si presionamos SHIFT + F2
-                    else if (_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) && e.KeyPressed == Key.F2)
-                    {
-                        // Cerramos la ventana con la web personalizada
-                        CloseWindowBrowser(CustomBrowser);
-                    }
-                    // Si la tecla presioanada es numérica
-                    else if (!_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) &&
+                {                    
+                    if (!_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) &&
                         (e.KeyPressed >= Key.D0 && e.KeyPressed <= Key.D9 || e.KeyPressed >= Key.NumPad0 && e.KeyPressed <= Key.NumPad9))
                     {
                         // Almacenamos el valor de la tecla.
@@ -211,7 +202,7 @@ namespace Lector.Sharp.Wpf
                 }
                 else if (!CustomBrowser.IsVisible && !string.IsNullOrEmpty(_keyData))
                 {
-                    var enteredNumbers = _keyData;                    
+                    var enteredNumbers = _keyData;
                     Task.Run(() => ProccessEnterKey(enteredNumbers)).ContinueWith(t =>
                     {
                         if (t.Result)
@@ -223,7 +214,7 @@ namespace Lector.Sharp.Wpf
                     // Limpiamos _keyData para otro proceso.
                     _keyData = string.Empty;
                     SendKeyEnter();
-                }                                                        
+                }
                 else
                 {
                     // Siempre que se presiona ENTER se limpia _keyData
@@ -241,7 +232,7 @@ namespace Lector.Sharp.Wpf
             {
                 //MessageBox.Show("Ha ocurrido un error. Comuníquese con el Administrador.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            
+
         }
 
         /// <summary>
@@ -476,5 +467,50 @@ namespace Lector.Sharp.Wpf
             // Utilizar SendWait para compatibilidad con WPF
             System.Windows.Forms.SendKeys.SendWait("{A}");
         }
+
+
+        #region HotKeys
+
+        private const int WM_HOTKEY = 0x0312;
+
+        private static UInt32 MOD_SHIFT = 0x0004;
+
+        [DllImport("user32.dll")]
+        private static extern bool RegisterHotKey(IntPtr hWnd, int id, UInt32 fsModifiers, UInt32 vlc);
+
+        private void RegisterHotKeys()
+        {
+            var res = RegisterHotKey(IntPtr.Zero, (int)LowLevelKeyboardListener.VirtualKeyStates.VK_F1, MOD_SHIFT, (UInt32)LowLevelKeyboardListener.VirtualKeyStates.VK_F1);
+            res = RegisterHotKey(IntPtr.Zero, (int)LowLevelKeyboardListener.VirtualKeyStates.VK_F2, MOD_SHIFT, (UInt32)LowLevelKeyboardListener.VirtualKeyStates.VK_F2);
+            ComponentDispatcher.ThreadFilterMessage += ComponentDispatcherThreadFilterMessage;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        public void UnregisteredHotKeys()
+        {
+            var res = UnregisterHotKey(IntPtr.Zero, 1);
+        }
+
+        private void ComponentDispatcherThreadFilterMessage(ref MSG msg, ref bool handled)
+        {
+            if (msg.message == WM_HOTKEY)
+            {
+                int keyPressed = msg.wParam.ToInt32();
+                switch (keyPressed)
+                {
+                    case (int)LowLevelKeyboardListener.VirtualKeyStates.VK_F1:
+                        if (InfoBrowser.IsVisible) CloseWindowBrowser(InfoBrowser);
+                        OpenWindowBrowser(CustomBrowser, _service.UrlNavegarCustom, InfoBrowser);
+                        break;
+                    case (int)LowLevelKeyboardListener.VirtualKeyStates.VK_F2:
+                        CloseWindowBrowser(CustomBrowser);
+                        break;
+                }
+            }
+        }
+
+        #endregion
+
     }
 }

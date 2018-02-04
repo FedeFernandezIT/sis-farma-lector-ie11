@@ -1,11 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Lector.Sharp.Wpf.Models;
 using MySql.Data.MySqlClient;
 using System.Configuration;
-using System.IO;
 
 namespace Lector.Sharp.Wpf.Services
 {

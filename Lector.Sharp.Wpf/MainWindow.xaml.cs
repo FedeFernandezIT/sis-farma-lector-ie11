@@ -1,21 +1,9 @@
 ﻿using Lector.Sharp.Wpf.Services;
 using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Deployment.Application;
+using System.Diagnostics;
 using Microsoft.Win32;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -97,7 +85,7 @@ namespace Lector.Sharp.Wpf
         public MainWindow()
         {
             try
-            {
+            {                
                 RegisterStartup();
                 SupportHtml5();
                 InitializeComponent();
@@ -192,7 +180,25 @@ namespace Lector.Sharp.Wpf
             try
             {
                 if (e.KeyPressed != Key.Enter)
-                {                    
+                {
+                    #region Low level Keyboard for HotKey
+                    //// Si presionamos SHIFT + F1
+                    //if (_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) && e.KeyPressed == Key.F1)
+                    //{   // Si La ventana de información detallada está abierta la cerramos
+                    //    if (InfoBrowser.IsVisible)
+                    //        CloseWindowBrowser(InfoBrowser);
+                    //    // Abrimos una ventana con la web personalizada.    
+                    //    OpenWindowBrowser(CustomBrowser, _service.UrlNavegarCustom, InfoBrowser);
+                    //}
+                    //// Si presionamos SHIFT + F2
+                    //else if (_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) && e.KeyPressed == Key.F2)
+                    //{
+                    //    // Cerramos la ventana con la web personalizada
+                    //    CloseWindowBrowser(CustomBrowser);
+                    //}
+                    #endregion
+
+                    // si la tecla presionada es numérica
                     if (!_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) &&
                         (e.KeyPressed >= Key.D0 && e.KeyPressed <= Key.D9 || e.KeyPressed >= Key.NumPad0 && e.KeyPressed <= Key.NumPad9))
                     {
@@ -471,41 +477,67 @@ namespace Lector.Sharp.Wpf
 
         #region HotKeys
 
-        private const int WM_HOTKEY = 0x0312;
+        private const int WM_HOTKEY = 0x0312;        
+        private const UInt32 MOD_SHIFT = 0x0004;
+        private const string WM_ATOMNAME_SHIFT_F1 = "SFRM_LECTOR_SHIFT_F1";
+        private const string WM_ATOMNAME_SHIFT_F2 = "SFRM_LECTOR_SHIFT_F2";
+        private ushort kbShiftF1;
+        private ushort kbShiftF2;
+        private IntPtr CurrentProcess;
 
-        private static UInt32 MOD_SHIFT = 0x0004;
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern ushort GlobalAddAtom(string atomName);
+
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern ushort GlobalDeleteAtom(ushort nAtom);                
 
         [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, UInt32 fsModifiers, UInt32 vlc);
 
-        private void RegisterHotKeys()
-        {
-            var res = RegisterHotKey(IntPtr.Zero, (int)LowLevelKeyboardListener.VirtualKeyStates.VK_F1, MOD_SHIFT, (UInt32)LowLevelKeyboardListener.VirtualKeyStates.VK_F1);
-            res = RegisterHotKey(IntPtr.Zero, (int)LowLevelKeyboardListener.VirtualKeyStates.VK_F2, MOD_SHIFT, (UInt32)LowLevelKeyboardListener.VirtualKeyStates.VK_F2);
-            ComponentDispatcher.ThreadFilterMessage += ComponentDispatcherThreadFilterMessage;
-        }
-
         [DllImport("user32.dll")]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        [DllImport("kernel32.dll")]
+        static extern uint GetLastError();
+
+        private void RegisterHotKeys()
+        {
+            //var moudle = Process.GetCurrentProcess().MainModule.ModuleName;
+            //CurrentProcess = GetModuleHandle(moudle);
+            CurrentProcess = Process.GetCurrentProcess().MainWindowHandle;
+
+            kbShiftF1 = GlobalAddAtom(WM_ATOMNAME_SHIFT_F1);
+            kbShiftF2 = GlobalAddAtom(WM_ATOMNAME_SHIFT_F2);
+
+            var res = RegisterHotKey(CurrentProcess, kbShiftF1, MOD_SHIFT, (UInt32)LowLevelKeyboardListener.VirtualKeyStates.VK_F1);
+            res = RegisterHotKey(CurrentProcess, kbShiftF2, MOD_SHIFT, (UInt32)LowLevelKeyboardListener.VirtualKeyStates.VK_F2);
+            
+            ComponentDispatcher.ThreadFilterMessage += ComponentDispatcherThreadFilterMessage;
+        }
+        
         public void UnregisteredHotKeys()
         {
-            var res = UnregisterHotKey(IntPtr.Zero, 1);
+            GlobalDeleteAtom(kbShiftF1);
+            GlobalDeleteAtom(kbShiftF2);
+            var res = UnregisterHotKey(CurrentProcess, kbShiftF1);
+            res = UnregisterHotKey(CurrentProcess, kbShiftF2);            
         }
 
         private void ComponentDispatcherThreadFilterMessage(ref MSG msg, ref bool handled)
-        {
+        {            
             if (msg.message == WM_HOTKEY)
             {
-                int keyPressed = msg.wParam.ToInt32();
-                switch (keyPressed)
+                if ((int) msg.wParam == kbShiftF1)
                 {
-                    case (int)LowLevelKeyboardListener.VirtualKeyStates.VK_F1:
-                        if (InfoBrowser.IsVisible) CloseWindowBrowser(InfoBrowser);
-                        OpenWindowBrowser(CustomBrowser, _service.UrlNavegarCustom, InfoBrowser);
-                        break;
-                    case (int)LowLevelKeyboardListener.VirtualKeyStates.VK_F2:
-                        CloseWindowBrowser(CustomBrowser);
-                        break;
+                    if (InfoBrowser.IsVisible) CloseWindowBrowser(InfoBrowser);
+                    OpenWindowBrowser(CustomBrowser, _service.UrlNavegarCustom, InfoBrowser);
+                }
+                else if ((int) msg.wParam == kbShiftF2)
+                {
+                    CloseWindowBrowser(CustomBrowser);
                 }
             }
         }

@@ -27,13 +27,13 @@ namespace Lector.Sharp.Wpf
 
         private void winBrowser_Loaded(object sender, RoutedEventArgs e)
         {
-            ColocarEnTop(true);
+            //ColocarEnTop(true);
             Browser.SuppressScriptErrors(true);
         }
 
         private void winBrowser_Unloaded(object sender, RoutedEventArgs e)
         {
-            ColocarEnTop(false);
+            //ColocarEnTop(false);
         }
 
         private void ColocarEnTop(bool top)

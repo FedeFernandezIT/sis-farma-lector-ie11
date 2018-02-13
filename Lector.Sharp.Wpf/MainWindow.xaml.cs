@@ -210,7 +210,7 @@ namespace Lector.Sharp.Wpf
                         StoreKey(e.KeyPressed);
                     }
                 }
-                else if (!CustomBrowser.IsVisible && !string.IsNullOrEmpty(_keyData))
+                else if (!CustomBrowser.IsActive && !string.IsNullOrEmpty(_keyData))
                 {
                     var enteredNumbers = _keyData;
                     Task.Run(() => ProccessEnterKey(enteredNumbers)).ContinueWith(t =>

@@ -106,7 +106,9 @@ namespace Lector.Sharp.Wpf
 
                 // Activamos el listener de teclado
                 _listener.HookKeyboard();
-                this.RegisterHotKeys();
+
+                // Deshabilitamos HotKey, porque usamos LowLevelKeyboardProc
+                //this.RegisterHotKeys();
                                                 
                 _iconNotification = new System.Windows.Forms.NotifyIcon();
                 _iconNotification.BalloonTipText = "La Aplicación SisFarma se encuentra ejecutando";
@@ -171,6 +173,8 @@ namespace Lector.Sharp.Wpf
         {
             // Desactivamos el listener del teclado
             _listener.UnHookKeyboard();
+
+            // Deshabilitamos HotKey, porque usamos LowLevelKeyboardProc
             this.UnregisteredHotKeys();
         }
 
@@ -186,20 +190,20 @@ namespace Lector.Sharp.Wpf
                 if (e.KeyPressed != Key.Enter)
                 {
                     #region Low level Keyboard for HotKey
-                    //// Si presionamos SHIFT + F1
-                    //if (_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) && e.KeyPressed == Key.F1)
-                    //{   // Si La ventana de información detallada está abierta la cerramos
-                    //    if (InfoBrowser.IsVisible)
-                    //        CloseWindowBrowser(InfoBrowser);
-                    //    // Abrimos una ventana con la web personalizada.    
-                    //    OpenWindowBrowser(CustomBrowser, _service.UrlNavegarCustom, InfoBrowser);
-                    //}
-                    //// Si presionamos SHIFT + F2
-                    //else if (_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) && e.KeyPressed == Key.F2)
-                    //{
-                    //    // Cerramos la ventana con la web personalizada
-                    //    CloseWindowBrowser(CustomBrowser);
-                    //}
+                    // Si presionamos SHIFT + F1
+                    if (_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) && e.KeyPressed == Key.F1)
+                    {   // Si La ventana de información detallada está abierta la cerramos
+                        if (InfoBrowser.IsVisible)
+                            CloseWindowBrowser(InfoBrowser);
+                        // Abrimos una ventana con la web personalizada.    
+                        OpenWindowBrowser(CustomBrowser, _service.UrlNavegarCustom, InfoBrowser);
+                    }
+                    // Si presionamos SHIFT + F2
+                    else if (_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) && e.KeyPressed == Key.F2)
+                    {
+                        // Cerramos la ventana con la web personalizada
+                        CloseWindowBrowser(CustomBrowser);
+                    }
                     #endregion
 
                     // si la tecla presionada es numérica

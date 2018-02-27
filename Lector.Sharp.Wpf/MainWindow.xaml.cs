@@ -62,8 +62,7 @@ namespace Lector.Sharp.Wpf
                 if (_infoBrowser.IsClosed)
                 {
                     _infoBrowser = new BrowserWindow();                    
-                }
-                _infoBrowser.Topmost = false;
+                }                
                 _infoBrowser.WindowStyle = WindowStyle.None;
                 return _infoBrowser;
             }
@@ -79,19 +78,18 @@ namespace Lector.Sharp.Wpf
                 if (_customBrowser.IsClosed)
                 {
                     _customBrowser = new BrowserWindow();
-                }
-                _infoBrowser.Topmost = false;                
+                }                
                 return _customBrowser;
             }
         }        
 
         public MainWindow()
-        {
+        {            
             try
-            {                
+            {
                 RegisterStartup();
                 SupportHtml5();
-                InitializeComponent();
+                InitializeComponent();                
                 _service = new FarmaService();
                 _listener = new LowLevelKeyboardListener();
                 _infoBrowser = new BrowserWindow();
@@ -100,7 +98,7 @@ namespace Lector.Sharp.Wpf
 
                 // Leemos los archivos de configuración
                 _service.LeerFicherosConfiguracion();
-
+                
                 // Setamos el comportamiento de la aplicación al presionar una tecla
                 _listener.OnKeyPressed += _listener_OnKeyPressed;
 
@@ -109,7 +107,7 @@ namespace Lector.Sharp.Wpf
 
                 // Deshabilitamos HotKey, porque usamos LowLevelKeyboardProc
                 //this.RegisterHotKeys();
-                                                
+
                 _iconNotification = new System.Windows.Forms.NotifyIcon();
                 _iconNotification.BalloonTipText = "La Aplicación SisFarma se encuentra ejecutando";
                 _iconNotification.BalloonTipTitle = "SisFarma Notificación";
@@ -127,12 +125,15 @@ namespace Lector.Sharp.Wpf
                 menu.MenuItems.Add(notificationQuitMenu);
                 _iconNotification.ContextMenu = menu;
                 _iconNotification.Visible = true;
-                OpenWindowBrowser(CustomBrowser, _service.UrlNavegarCustom, InfoBrowser);
             }
             catch (IOException ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error " + ex.Message);            
             }
             
         }
@@ -144,14 +145,14 @@ namespace Lector.Sharp.Wpf
         {           
             RegistryKey reg =
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            reg.SetValue("SisFarma Lector", System.Reflection.Assembly.GetExecutingAssembly().Location);
-            //MessageBox.Show("Startup success", "Mensaje", MessageBoxButton.OK, MessageBoxImage.Information);
+            reg.SetValue("SisFarma Lector", System.Reflection.Assembly.GetExecutingAssembly().Location);            
         }
 
         private void SupportHtml5()
-        {
-            RegistryKey reg = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION", true);
-            reg.SetValue("Lector.Sharp.Wpf.exe", 11001, RegistryValueKind.DWord);
+        {            
+            RegistryKey reg = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION", true) ??
+                              Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION", true);
+            reg?.SetValue("Lector.Sharp.Wpf.exe", 11001, RegistryValueKind.DWord);
         }
 
         /// <summary>
@@ -455,7 +456,10 @@ namespace Lector.Sharp.Wpf
         /// </summary>
         /// <param name="browser">Ventana con un browser</param>
         private void OpenWindowBrowser(BrowserWindow browser, string url, BrowserWindow hidden)
-        {            
+        {
+            hidden.Topmost = false;
+            browser.Topmost = true;
+            hidden.Topmost = true;
             browser.Browser.Navigate(url);
             browser.Visibility = Visibility.Visible;
             browser.WindowState = WindowState.Maximized;                        

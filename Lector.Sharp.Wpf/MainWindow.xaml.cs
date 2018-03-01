@@ -62,8 +62,7 @@ namespace Lector.Sharp.Wpf
                 if (_infoBrowser.IsClosed)
                 {
                     _infoBrowser = new BrowserWindow();                    
-                }                
-                _infoBrowser.WindowStyle = WindowStyle.None;
+                }                                
                 return _infoBrowser;
             }
         }
@@ -176,7 +175,7 @@ namespace Lector.Sharp.Wpf
             _listener.UnHookKeyboard();
 
             // Deshabilitamos HotKey, porque usamos LowLevelKeyboardProc
-            this.UnregisteredHotKeys();
+            //this.UnregisteredHotKeys();
         }
 
         /// <summary>
@@ -460,8 +459,11 @@ namespace Lector.Sharp.Wpf
             hidden.Topmost = false;
             browser.Topmost = true;
             hidden.Topmost = true;
-            browser.Browser.Navigate(url);
-            browser.Visibility = Visibility.Visible;
+            if (!browser.IsVisible)
+            {
+                browser.Browser.Navigate(url);
+                browser.Visibility = Visibility.Visible;
+            }                        
             browser.WindowState = WindowState.Maximized;                        
             browser.Show();
             browser.Activate();

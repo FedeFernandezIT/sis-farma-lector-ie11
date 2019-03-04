@@ -128,8 +128,10 @@
     <Compile Include="BrowserWindow.xaml.cs">
       <DependentUpon>BrowserWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Extensions\KeyExtensions.cs" />
     <Compile Include="Extensions\WebBrowserExtensions.cs" />
     <Compile Include="LowLevelWindowsListener.cs" />
+    <Compile Include="Models\QR.cs" />
     <Compile Include="Models\SisFarmaContext.cs" />
     <Compile Include="Models\SisFarmaModel.Context.cs">
       <AutoGen>True</AutoGen>

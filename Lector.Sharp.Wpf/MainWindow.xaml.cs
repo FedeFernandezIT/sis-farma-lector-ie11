@@ -18,11 +18,12 @@ namespace Lector.Sharp.Wpf
     public partial class MainWindow : Window
     {
         /// <summary>
-        /// Listener que escucha cada vez que se presiona una tecla.       
+        /// Listener que escucha cada vez que se presiona una tecla.
         /// </summary>
         private LowLevelKeyboardListener _listener;
+
         private LowLevelWindowsListener _window;
-        
+
         /// <summary>
         /// Gestiona todos los servicios de SisFarma, como acceso a la
         /// base de datos, lectura de archivos de configuración.
@@ -61,8 +62,8 @@ namespace Lector.Sharp.Wpf
             {
                 if (_infoBrowser.IsClosed)
                 {
-                    _infoBrowser = new BrowserWindow();                    
-                }                                
+                    _infoBrowser = new BrowserWindow();
+                }
                 return _infoBrowser;
             }
         }
@@ -77,18 +78,18 @@ namespace Lector.Sharp.Wpf
                 if (_customBrowser.IsClosed)
                 {
                     _customBrowser = new BrowserWindow();
-                }                
+                }
                 return _customBrowser;
             }
-        }        
+        }
 
         public MainWindow()
-        {            
+        {
             try
             {
                 RegisterStartup();
                 SupportHtml5();
-                InitializeComponent();                
+                InitializeComponent();
                 _service = new FarmaService();
                 _listener = new LowLevelKeyboardListener();
                 _infoBrowser = new BrowserWindow();
@@ -97,7 +98,7 @@ namespace Lector.Sharp.Wpf
 
                 // Leemos los archivos de configuración
                 _service.LeerFicherosConfiguracion();
-                
+
                 // Setamos el comportamiento de la aplicación al presionar una tecla
                 _listener.OnKeyPressed += _listener_OnKeyPressed;
 
@@ -132,23 +133,22 @@ namespace Lector.Sharp.Wpf
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error " + ex.Message);            
+                MessageBox.Show("Error " + ex.Message);
             }
-            
         }
 
         /// <summary>
         /// Registra la aplicación en el Registro de sistema para que arranque junto al sistema.
         /// </summary>
         private void RegisterStartup()
-        {           
+        {
             RegistryKey reg =
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            reg.SetValue("SisFarma Lector", System.Reflection.Assembly.GetExecutingAssembly().Location);            
+            reg.SetValue("SisFarma Lector", System.Reflection.Assembly.GetExecutingAssembly().Location);
         }
 
         private void SupportHtml5()
-        {            
+        {
             RegistryKey reg = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION", true) ??
                               Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION", true);
             reg?.SetValue("Lector.Sharp.Wpf.exe", 11001, RegistryValueKind.DWord);
@@ -175,7 +175,7 @@ namespace Lector.Sharp.Wpf
             _listener.UnHookKeyboard();
 
             // Deshabilitamos HotKey, porque usamos LowLevelKeyboardProc
-            //this.UnregisteredHotKeys();
+            this.UnregisteredHotKeys();
         }
 
         /// <summary>
@@ -187,15 +187,17 @@ namespace Lector.Sharp.Wpf
         {
             try
             {
-                if (e.KeyPressed != Key.Enter)
+                //if (e.KeyPressed != Key.Enter)
+                if (e.KeyPressed != Key.Enter && !(_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_CONTROL) && e.KeyPressed == Key.M))
                 {
                     #region Low level Keyboard for HotKey
+
                     // Si presionamos SHIFT + F1
                     if (_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) && e.KeyPressed == Key.F1)
                     {   // Si La ventana de información detallada está abierta la cerramos
                         if (InfoBrowser.IsVisible)
                             CloseWindowBrowser(InfoBrowser);
-                        // Abrimos una ventana con la web personalizada.    
+                        // Abrimos una ventana con la web personalizada.
                         OpenWindowBrowser(CustomBrowser, _service.UrlNavegarCustom, InfoBrowser);
                     }
                     // Si presionamos SHIFT + F2
@@ -204,7 +206,8 @@ namespace Lector.Sharp.Wpf
                         // Cerramos la ventana con la web personalizada
                         CloseWindowBrowser(CustomBrowser);
                     }
-                    #endregion
+
+                    #endregion Low level Keyboard for HotKey
 
                     // si la tecla presionada es numérica
                     if (!_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_SHIFT) &&
@@ -227,7 +230,7 @@ namespace Lector.Sharp.Wpf
 
                     // Limpiamos _keyData para otro proceso.
                     _keyData = string.Empty;
-                    SendKeyEnter();
+                    // SendKeyEnter();
                 }
                 else
                 {
@@ -246,7 +249,6 @@ namespace Lector.Sharp.Wpf
             {
                 //MessageBox.Show("Ha ocurrido un error. Comuníquese con el Administrador.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
         }
 
         /// <summary>
@@ -259,7 +261,6 @@ namespace Lector.Sharp.Wpf
 
             if (long.TryParse(enteredNumbers, out number) && enteredNumbers.Length >= 4)
             {
-
                 var lanzarBrowserWindow = false;
                 var noEntrar = string.Empty;
                 var continuar = false;
@@ -271,7 +272,7 @@ namespace Lector.Sharp.Wpf
                     enteredNumbers = enteredNumbers.Substring(enteredNumbers.Length - 13);
                     noEntrar = enteredNumbers.Substring(0, 4);
 
-                    if (Array.Exists(new[] { "1010", "1111", "0000", "9902", "9900", "9901", "9903", "9904", "9905", "9906", "9907", "9908", "9909", "9910", "9911", "9912", "9913", "9915", "9916", "9917", "9918", "9919", "9920", "1001", "2014", "2015", "2016", "2017", "2018" }, x => x.Equals(noEntrar)))
+                    if (Array.Exists(new[] { "8888", "1010", "1111", "0000", "9902", "9900", "9901", "9903", "9904", "9905", "9906", "9907", "9908", "9909", "9910", "9911", "9912", "9913", "9915", "9916", "9917", "9918", "9919", "9920", "1001", "2014", "2015", "2016", "2017", "2018" }, x => x.Equals(noEntrar)))
                         continuar = true;
                     else
                     {
@@ -341,7 +342,7 @@ namespace Lector.Sharp.Wpf
                 {
                     var cliente = _service.GetCliente(enteredNumbers);
                     if (cliente != null)
-                    {                     
+                    {
                         lanzarBrowserWindow = true;
                         _service.UrlNavegar = _service.Url.Replace("codigo", cliente.ToString()) + "/" + _service.Mostrador;
                     }
@@ -349,7 +350,7 @@ namespace Lector.Sharp.Wpf
                     {
                         var trabajador = _service.GetTrabajador(enteredNumbers);
                         if (trabajador != null)
-                        {                     
+                        {
                             lanzarBrowserWindow = true;
                             _service.UrlNavegar = _service.UrlMensajes.Replace("codigo", trabajador.ToString());
                         }
@@ -382,11 +383,11 @@ namespace Lector.Sharp.Wpf
                             {
                                 mostrarVentana = true;
                                 foundAsociado = articulo;
-                            }                                
+                            }
                             else
                             {
                                 var categ = _service.GetCategorizacion();
-                                if (categ != null)
+                                if (categ == null)
                                 {
                                     var asociadoCodNacional = _service.GetAnyAsociadoMedicamento(Convert.ToInt64(codNacional));
                                     if (asociadoCodNacional != null)
@@ -394,11 +395,20 @@ namespace Lector.Sharp.Wpf
                                         mostrarVentana = true;
                                         foundAsociado = asociadoCodNacional;
                                     }
-                                }                                                                    
+                                }
                                 else
                                 {
-                                    var asociadoCodNacional = _service.GetAsociadoCategorizacion(Convert.ToInt64(codNacional));                                    
-                                    if (asociadoCodNacional != null)
+                                    var asociadoCodNacional = _service.GetAsociadoCategorizacion(Convert.ToInt64(codNacional));
+                                    if (asociadoCodNacional == null)
+                                    {
+                                        asociadoCodNacional = _service.GetAnyAsociadoMedicamento(Convert.ToInt64(codNacional));
+                                        if (asociadoCodNacional != null)
+                                        {
+                                            mostrarVentana = true;
+                                            foundAsociado = asociadoCodNacional;
+                                        }
+                                    }
+                                    else
                                     {
                                         mostrarVentana = true;
                                         foundAsociado = asociadoCodNacional;
@@ -408,21 +418,19 @@ namespace Lector.Sharp.Wpf
                         }
 
                         if (mostrarVentana && foundAsociado != null)
-                        {                                                        
+                        {
                             lanzarBrowserWindow = true;
-                            _service.UrlNavegar = _service.Url.Replace("codigo", "cn" + foundAsociado + "/" + _service.Mostrador);                            
+                            _service.UrlNavegar = _service.Url.Replace("codigo", "cn" + foundAsociado + "/" + _service.Mostrador);
                         }
                     }
-                    
                 }
 
                 if (lanzarBrowserWindow)
                 {
-                    // Mostramos el browser con información de la base de datos                                          
+                    // Mostramos el browser con información de la base de datos
                     // Si es proceso de búsqueda en la base de datos es exitoso
-                    // mostramos los resultados                                        
+                    // mostramos los resultados
                     return true;
-
                 }
             }
             return false;
@@ -459,23 +467,20 @@ namespace Lector.Sharp.Wpf
             hidden.Topmost = false;
             browser.Topmost = true;
             hidden.Topmost = true;
-            if (!browser.IsVisible)
-            {
-                browser.Browser.Navigate(url);
-                browser.Visibility = Visibility.Visible;
-            }                        
-            browser.WindowState = WindowState.Maximized;                        
+            browser.Browser.Navigate(url);
+            browser.Visibility = Visibility.Visible;
+            browser.WindowState = WindowState.Maximized;
             browser.Show();
             browser.Activate();
         }
 
         /// <summary>
         /// Simula presionar la tecla ENTER
-        /// </summary>        
+        /// </summary>
         public static void SendKeyEnter()
         {
             // Utilizar SendWait para compatibilidad con WPF
-            System.Windows.Forms.SendKeys.SendWait("{ENTER}");            
+            System.Windows.Forms.SendKeys.SendWait("{ENTER}");
         }
 
         public static void SendKeyA()
@@ -484,10 +489,9 @@ namespace Lector.Sharp.Wpf
             System.Windows.Forms.SendKeys.SendWait("{A}");
         }
 
-
         #region HotKeys
 
-        private const int WM_HOTKEY = 0x0312;        
+        private const int WM_HOTKEY = 0x0312;
         private const UInt32 MOD_SHIFT = 0x0004;
         private const string WM_ATOMNAME_SHIFT_F1 = "SFRM_LECTOR_SHIFT_F1";
         private const string WM_ATOMNAME_SHIFT_F2 = "SFRM_LECTOR_SHIFT_F2";
@@ -502,7 +506,7 @@ namespace Lector.Sharp.Wpf
         public static extern ushort GlobalAddAtom(string atomName);
 
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-        static extern ushort GlobalDeleteAtom(ushort nAtom);                
+        private static extern ushort GlobalDeleteAtom(ushort nAtom);
 
         [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, UInt32 fsModifiers, UInt32 vlc);
@@ -511,7 +515,7 @@ namespace Lector.Sharp.Wpf
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         [DllImport("kernel32.dll")]
-        static extern uint GetLastError();
+        private static extern uint GetLastError();
 
         private void RegisterHotKeys()
         {
@@ -524,35 +528,34 @@ namespace Lector.Sharp.Wpf
 
             var res = RegisterHotKey(CurrentProcess, kbShiftF1, MOD_SHIFT, (UInt32)LowLevelKeyboardListener.VirtualKeyStates.VK_F1);
             res = RegisterHotKey(CurrentProcess, kbShiftF2, MOD_SHIFT, (UInt32)LowLevelKeyboardListener.VirtualKeyStates.VK_F2);
-            
+
             ComponentDispatcher.ThreadFilterMessage += ComponentDispatcherThreadFilterMessage;
         }
-        
+
         public void UnregisteredHotKeys()
         {
             GlobalDeleteAtom(kbShiftF1);
             GlobalDeleteAtom(kbShiftF2);
             var res = UnregisterHotKey(CurrentProcess, kbShiftF1);
-            res = UnregisterHotKey(CurrentProcess, kbShiftF2);            
+            res = UnregisterHotKey(CurrentProcess, kbShiftF2);
         }
 
         private void ComponentDispatcherThreadFilterMessage(ref MSG msg, ref bool handled)
-        {            
+        {
             if (msg.message == WM_HOTKEY)
             {
-                if ((int) msg.wParam == kbShiftF1)
+                if ((int)msg.wParam == kbShiftF1)
                 {
                     if (InfoBrowser.IsVisible) CloseWindowBrowser(InfoBrowser);
                     if (!CustomBrowser.IsVisible) OpenWindowBrowser(CustomBrowser, _service.UrlNavegarCustom, InfoBrowser);
                 }
-                else if ((int) msg.wParam == kbShiftF2)
+                else if ((int)msg.wParam == kbShiftF2)
                 {
                     CloseWindowBrowser(CustomBrowser);
                 }
             }
         }
 
-        #endregion
-
+        #endregion HotKeys
     }
 }

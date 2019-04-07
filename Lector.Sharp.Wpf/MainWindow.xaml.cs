@@ -11,6 +11,9 @@ using System.Windows.Interop;
 using MySql.Data.MySqlClient;
 using Lector.Sharp.Wpf.Models;
 using Lector.Sharp.Wpf.Extensions;
+using System.Deployment.Application;
+using Lector.Sharp.Wpf.Helpers;
+using System.Threading;
 
 namespace Lector.Sharp.Wpf
 {
@@ -85,13 +88,27 @@ namespace Lector.Sharp.Wpf
             }
         }
 
+        
+
         public MainWindow()
         {
+            var updateTimer = new System.Timers.Timer(5000);
+            updateTimer.Elapsed += (s, e) =>
+            {
+                if (Updater.CheckUpdateSyncWithInfo())
+                {
+                    Updater.UpdateHot();
+                    Dispatcher.Invoke(() =>  Application.Current.BeginReStart());
+                }
+
+            };
+            updateTimer.Start();            
+
             try
             {
-                RegisterStartup();
-                SupportHtml5();
-                InitializeComponent();
+            //    RegisterStartup();
+                 SupportHtml5();
+                 InitializeComponent();
                 _service = new FarmaService();
                 _listener = new LowLevelKeyboardListener();
                 _infoBrowser = new BrowserWindow();
@@ -163,12 +180,16 @@ namespace Lector.Sharp.Wpf
         /// <param name="e"></param>
         private void notificationQuitMenu_Click(object sender, EventArgs e)
         {
-            Application.Current.Shutdown();
+            Application.Current.Shutdown();            
         }
 
         private void notificactionInfoMenu_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("SisFarma Applicación\nsisfarma.es");
+            var version = "\n(sin version1)";
+            if (ApplicationDeployment.IsNetworkDeployed)
+                version = $"\n{ApplicationDeployment.CurrentDeployment.CurrentVersion}";
+            
+            MessageBox.Show($"SisFarma Applicación{version}\nsisfarma.es");
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -222,7 +243,7 @@ namespace Lector.Sharp.Wpf
                     {
                         if (t.Result)
                         {
-                            OpenWindowBrowser(InfoBrowser, _service.UrlNavegar, CustomBrowser);
+                            OpenWindowBrowser(InfoBrowser, "http://www.google.com",/*_service.UrlNavegar*/ CustomBrowser);
                         }
                     }, TaskScheduler.FromCurrentSynchronizationContext());
 
@@ -253,7 +274,7 @@ namespace Lector.Sharp.Wpf
         /// Procesa los _keyData para buscar datos en la base de datos
         /// </summary>
         private bool ProccessEnterKey(string entryData)
-        {
+        {            
             var entryBarCode = entryData;
             if (QRCode.TryParse(entryData, out QRCode qr))
                 entryBarCode = qr.BarCode;

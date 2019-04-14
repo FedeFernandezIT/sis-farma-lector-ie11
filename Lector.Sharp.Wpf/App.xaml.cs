@@ -2,6 +2,7 @@
 using System;
 using System.Deployment.Application;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
@@ -16,32 +17,32 @@ namespace Lector.Sharp.Wpf
     public partial class App : System.Windows.Application
     {
         protected override void OnStartup(StartupEventArgs e)
-        {
-            if (!ApplicationDeployment.IsNetworkDeployed)
-            {
-                MessageBox.Show("Sisfarma Lector debe instalarse como Administrador.");
-                Application.Current.Shutdown();
-            }
-
+        {            
             if (!IsRunAsAdministrator())
-            {
-                var processInfo = new ProcessStartInfo(Assembly.GetExecutingAssembly().CodeBase);
+            {                
+                var location = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.Programs),
+                    @"SisFarma", @"SisFarma Lector.appref-ms");
 
-                // Configurar Lector como Administrador
+                
+                // Configurar Lector como Administrador                
+                ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", $"/c \"{location}\""); // same as "netsh interface ip delete arpcache"
+                processInfo.CreateNoWindow = true;
+                processInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 processInfo.UseShellExecute = true;
-                processInfo.Verb = "runas";
-
+                processInfo.Verb = "runas";                
+                
                 // Ejecutar Lector
                 try
                 {
-                    Process.Start(processInfo);
+                    var cmd = Process.Start(processInfo);                    
                 }
                 catch (Exception ex)
-                {
+                {                    
                     // El usuario no permite que Lector se ejecute como Administrador
                     MessageBox.Show("Sisfarma Lector, sólo puede ejecutarse como Administrador.");
                 }
-                // Cerrar Lector (el primero que se ejecuta sin permisos)
+                // Cerrar Lector (el primero que se ejecuta sin permisos)                
                 Application.Current.Shutdown();
             }
 

@@ -106,9 +106,9 @@ namespace Lector.Sharp.Wpf
 
             try
             {
-            //    RegisterStartup();
-                 SupportHtml5();
-                 InitializeComponent();
+                RegisterStartup();
+                SupportHtml5();
+                InitializeComponent();
                 _service = new FarmaService();
                 _listener = new LowLevelKeyboardListener();
                 _infoBrowser = new BrowserWindow();
@@ -161,9 +161,15 @@ namespace Lector.Sharp.Wpf
         /// </summary>
         private void RegisterStartup()
         {
+            if (!ApplicationDeployment.IsNetworkDeployed)
+                return;
+            var location = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Programs),
+                @"SisFarma", @"SisFarma Lector.appref-ms");
+
             RegistryKey reg =
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            reg.SetValue("SisFarma Lector", System.Reflection.Assembly.GetExecutingAssembly().Location);
+            reg.SetValue("SisFarma Lector", location);
         }
 
         private void SupportHtml5()
@@ -185,11 +191,18 @@ namespace Lector.Sharp.Wpf
 
         private void notificactionInfoMenu_Click(object sender, EventArgs e)
         {
-            var version = "\n(sin version1)";
-            if (ApplicationDeployment.IsNetworkDeployed)
-                version = $"\n{ApplicationDeployment.CurrentDeployment.CurrentVersion}";
-            
-            MessageBox.Show($"SisFarma Applicación{version}\nsisfarma.es");
+            try
+            {
+                var version = $"\n{ApplicationDeployment.CurrentDeployment.CurrentVersion}";
+                if (ApplicationDeployment.IsNetworkDeployed)
+                    version = $"\n{ApplicationDeployment.CurrentDeployment.CurrentVersion}";
+
+                MessageBox.Show($"SisFarma Applicación{version}\nsisfarma.es");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }            
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

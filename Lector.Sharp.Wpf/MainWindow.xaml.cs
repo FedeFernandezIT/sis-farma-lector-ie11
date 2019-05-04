@@ -14,6 +14,7 @@ using Lector.Sharp.Wpf.Extensions;
 using System.Deployment.Application;
 using Lector.Sharp.Wpf.Helpers;
 using System.Threading;
+using System.Text;
 
 namespace Lector.Sharp.Wpf
 {
@@ -293,7 +294,6 @@ namespace Lector.Sharp.Wpf
                 entryBarCode = qr.BarCode;
 
             // Si el valor almacenado en _keyData en numérico y con longitud superior a 4
-
             if (long.TryParse(entryBarCode, out long number) && entryBarCode.Length >= 4)
             {
                 var lanzarBrowserWindow = false;
@@ -477,11 +477,169 @@ namespace Lector.Sharp.Wpf
         /// <param name="key">Tecla presionada</param>
         private void StoreKey(Key key)
         {
-            //if (_keyData.Length > 50)
-            //    _keyData = _keyData.Substring(_keyData.Length - 20 - 1);
-            var kc = new KeyConverter();
-            // Key.NumPad# se convierte en 'NumPad#' por lo cual lo eliminamos
-            _keyData += kc.ConvertToString(key)?.Replace("NumPad", string.Empty);
+            var character = string.Empty;
+            switch (key)
+            {
+                case Key.NumPad0:
+                case Key.D0:
+                    character = "0";
+                    break;
+
+                case Key.NumPad1:
+                case Key.D1:
+                    character = "1";
+                    break;
+
+                case Key.NumPad2:
+                case Key.D2:
+                    character = "2";
+                    break;
+
+                case Key.NumPad3:
+                case Key.D3:
+                    character = "3";
+                    break;
+
+                case Key.NumPad4:
+                case Key.D4:
+                    character = "4";
+                    break;
+
+                case Key.NumPad5:
+                case Key.D5:
+                    character = "5";
+                    break;
+
+                case Key.NumPad6:
+                case Key.D6:
+                    character = "6";
+                    break;
+
+                case Key.NumPad7:
+                case Key.D7:
+                    character = "7";
+                    break;
+
+                case Key.NumPad8:
+                case Key.D8:
+                    character = "8";
+                    break;
+
+                case Key.NumPad9:
+                case Key.D9:
+                    character = "9";
+                    break;
+
+                
+                case Key.A:
+                    character = "A";
+                    break;
+
+                case Key.B:
+                    character = "B";
+                    break;
+
+                case Key.C:
+                    character = "C";
+                    break;
+
+                case Key.D:
+                    character = "D";
+                    break;
+
+                case Key.E:
+                    character = "E";
+                    break;
+
+                case Key.F:
+                    character = "F";
+                    break;
+
+                case Key.G:
+                    character = "G";
+                    break;
+
+                case Key.H:
+                    character = "H";
+                    break;
+
+                case Key.I:
+                    character = "I";
+                    break;
+
+                case Key.J:
+                    character = "J";
+                    break;
+
+                case Key.K:
+                    character = "K";
+                    break;
+
+                case Key.L:
+                    character = "L";
+                    break;
+
+                case Key.M:
+                    character = "M";
+                    break;
+
+                case Key.N:
+                    character = "N";
+                    break;
+
+                case Key.O:
+                    character = "O";
+                    break;
+
+                case Key.P:
+                    character = "P";
+                    break;
+
+                case Key.Q:
+                    character = "Q";
+                    break;
+
+                case Key.R:
+                    character = "R";
+                    break;
+
+                case Key.S:
+                    character = "S";
+                    break;
+
+                case Key.T:
+                    character = "T";
+                    break;
+
+                case Key.U:
+                    character = "U";
+                    break;
+
+                case Key.V:
+                    character = "V";
+                    break;
+
+                case Key.W:
+                    character = "W";
+                    break;
+
+                case Key.X:
+                    character = "X";
+                    break;
+
+                case Key.Y:
+                    character = "Y";
+                    break;
+
+                case Key.Z:
+                    character = "Z";
+                    break;                
+                                                
+                default:
+                    break;
+            }
+            
+            _keyData += character;
         }
 
         /// <summary>

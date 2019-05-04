@@ -14,6 +14,7 @@ using Lector.Sharp.Wpf.Extensions;
 using System.Deployment.Application;
 using Lector.Sharp.Wpf.Helpers;
 using System.Threading;
+using System.Text;
 
 namespace Lector.Sharp.Wpf
 {
@@ -477,11 +478,17 @@ namespace Lector.Sharp.Wpf
         /// <param name="key">Tecla presionada</param>
         private void StoreKey(Key key)
         {
-            //if (_keyData.Length > 50)
-            //    _keyData = _keyData.Substring(_keyData.Length - 20 - 1);
-            var kc = new KeyConverter();
             // Key.NumPad# se convierte en 'NumPad#' por lo cual lo eliminamos
-            _keyData += kc.ConvertToString(key)?.Replace("NumPad", string.Empty);
+            var kc = new KeyConverter();            
+            var character = kc.ConvertToString(key)?.Replace("NumPad", string.Empty);
+
+            // Por alguna razón al convertir en string puede tirar el valor ascii en decimal
+            if (character.Length > 1 && int.TryParse(character, out var asciiDecimal))
+            {
+                character = "" + (char)Convert.ToByte(asciiDecimal);
+            }
+
+            _keyData += character;
         }
 
         /// <summary>

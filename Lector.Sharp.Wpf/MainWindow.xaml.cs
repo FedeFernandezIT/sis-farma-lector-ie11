@@ -287,7 +287,11 @@ namespace Lector.Sharp.Wpf
         /// Procesa los _keyData para buscar datos en la base de datos
         /// </summary>
         private bool ProccessEnterKey(string entryData)
-        {            
+        {
+            var suffix = "0013";
+            if (entryData.EndsWith(suffix))
+                entryData = entryData.Substring(0, entryData.Length - suffix.Length);
+            
             var entryBarCode = entryData;
             if (QRCode.TryParse(entryData, out QRCode qr))
                 entryBarCode = qr.BarCode;

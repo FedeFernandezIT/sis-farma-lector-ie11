@@ -227,8 +227,7 @@ namespace Lector.Sharp.Wpf
             {
                 if (e.KeyPressed != Key.Enter &&
                     !(_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_CONTROL) && e.KeyPressed == Key.M) &&
-                    !IsKeyValue(e.KeyPressed, CRLF_ASCII_VALUE) &&
-                    !CheckReadingCurrentEndWith(e.KeyPressed,CRLF_ASCII_VALUE))
+                    !IsKeyValue(e.KeyPressed, CRLF_ASCII_VALUE))
                 {
                     #region Low level Keyboard for HotKey
 

@@ -22,6 +22,8 @@ namespace Lector.Sharp.Wpf
     /// </summary>
     public partial class MainWindow : Window
     {
+        const string CRLF_ASCII_VALUE = "0013";
+
         /// <summary>
         /// Listener que escucha cada vez que se presiona una tecla.
         /// </summary>
@@ -224,7 +226,8 @@ namespace Lector.Sharp.Wpf
             try
             {
                 if (e.KeyPressed != Key.Enter &&
-                    !(_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_CONTROL) && e.KeyPressed == Key.M))
+                    !(_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_CONTROL) && e.KeyPressed == Key.M) &&
+                    !IsKeyValue(e.KeyPressed, CRLF_ASCII_VALUE))
                 {
                     #region Low level Keyboard for HotKey
 
@@ -287,11 +290,7 @@ namespace Lector.Sharp.Wpf
         /// Procesa los _keyData para buscar datos en la base de datos
         /// </summary>
         private bool ProccessEnterKey(string entryData)
-        {
-            var suffix = "0013";
-            if (entryData.EndsWith(suffix))
-                entryData = entryData.Substring(0, entryData.Length - suffix.Length);
-            
+        {                        
             var entryBarCode = entryData;
             if (QRCode.TryParse(entryData, out QRCode qr))
                 entryBarCode = qr.BarCode;
@@ -480,12 +479,20 @@ namespace Lector.Sharp.Wpf
         /// </summary>
         /// <param name="key">Tecla presionada</param>
         private void StoreKey(Key key)
-        {
-            //if (_keyData.Length > 50)
-            //    _keyData = _keyData.Substring(_keyData.Length - 20 - 1);
+        {            
+            // Key.NumPad# se convierte en 'NumPad#' por lo cual lo eliminamos            
             var kc = new KeyConverter();
-            // Key.NumPad# se convierte en 'NumPad#' por lo cual lo eliminamos
-            _keyData += kc.ConvertToString(key)?.Replace("NumPad", string.Empty);
+            var keyValue = kc.ConvertToString(key)?.Replace("NumPad", string.Empty);
+            _keyData += keyValue;
+                        
+        }
+
+        private bool IsKeyValue(Key key, string value)
+        {            
+            var kc = new KeyConverter();
+            var keyValue = kc.ConvertToString(key)?.Replace("NumPad", string.Empty);
+
+            return keyValue == value;
         }
 
         /// <summary>

@@ -302,7 +302,7 @@ namespace Lector.Sharp.Wpf
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN)
             {
                int vkCode = Marshal.ReadInt32(lParam);
-
+                
                 if (OnKeyPressed != null) { OnKeyPressed(this, new KeyPressedArgs(KeyInterop.KeyFromVirtualKey(vkCode))); }
             }
 

@@ -227,7 +227,8 @@ namespace Lector.Sharp.Wpf
             {
                 if (e.KeyPressed != Key.Enter &&
                     !(_listener.IsHardwareKeyDown(LowLevelKeyboardListener.VirtualKeyStates.VK_CONTROL) && e.KeyPressed == Key.M) &&
-                    !IsKeyValue(e.KeyPressed, CRLF_ASCII_VALUE))
+                    !IsKeyValue(e.KeyPressed, CRLF_ASCII_VALUE) &&
+                    !CheckReadingCurrentEndWith(e.KeyPressed,CRLF_ASCII_VALUE))
                 {
                     #region Low level Keyboard for HotKey
 
@@ -259,7 +260,7 @@ namespace Lector.Sharp.Wpf
                     {
                         if (t.Result)
                         {
-                            OpenWindowBrowser(InfoBrowser, "http://www.google.com",/*_service.UrlNavegar*/ CustomBrowser);
+                            OpenWindowBrowser(InfoBrowser, _service.UrlNavegar, CustomBrowser);
                         }
                     }, TaskScheduler.FromCurrentSynchronizationContext());
 
@@ -290,7 +291,7 @@ namespace Lector.Sharp.Wpf
         /// Procesa los _keyData para buscar datos en la base de datos
         /// </summary>
         private bool ProccessEnterKey(string entryData)
-        {                        
+        {            
             var entryBarCode = entryData;
             if (QRCode.TryParse(entryData, out QRCode qr))
                 entryBarCode = qr.BarCode;
@@ -483,8 +484,24 @@ namespace Lector.Sharp.Wpf
             // Key.NumPad# se convierte en 'NumPad#' por lo cual lo eliminamos            
             var kc = new KeyConverter();
             var keyValue = kc.ConvertToString(key)?.Replace("NumPad", string.Empty);
-            _keyData += keyValue;
-                        
+            _keyData += keyValue;                                    
+        }
+
+
+        private bool CheckReadingCurrentEndWith(Key key, string value)
+        {
+            if (key.IsDigit(_listener))
+            {                
+                StoreKey(key);
+                if (_keyData.EndsWith(value))
+                {
+                    _keyData = _keyData.Substring(0, _keyData.Length - value.Length);
+                    return true;
+                }
+                else _keyData = _keyData.Remove(_keyData.Length - 1);                
+            }
+            return false;
+
         }
 
         private bool IsKeyValue(Key key, string value)
